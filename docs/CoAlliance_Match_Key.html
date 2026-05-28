@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CoAlliance Match Key — v03-18-26</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 960px; margin: 20px auto; padding: 0 20px; line-height: 1.5; }
+        h1 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 8px; }
+        h2 { color: #555; margin-top: 30px; }
+        h3 { color: #666; }
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
+        th { background-color: #f0f0f0; }
+        code { background-color: #f5f5f5; padding: 2px 5px; font-size: 13px; }
+        pre { background-color: #f5f5f5; padding: 12px; overflow-x: auto; font-size: 13px; border: 1px solid #ddd; }
+        .disabled { color: #999; }
+        .removed { color: #999; text-decoration: line-through; }
+        .new { background-color: #eeffee; }
+        .note { background-color: #ffffdd; padding: 8px 12px; border-left: 3px solid #cc9; margin: 10px 0; }
+        .example { background-color: #f0f8ff; padding: 12px; border: 1px solid #cce; margin: 15px 0; }
+        .change-note { background-color: #eeffee; padding: 8px 12px; border-left: 3px solid #6b6; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<h1>Colorado Alliance MARC Record Match Key — v03-18-26 (_v03182026)</h1>
+<p><em>March 18, 2026.</em></p>
+
+<div class="change-note">
+<strong>What's new in _v03182026:</strong>
+<ul>
+    <li>A version string <code>_v03182026</code> is now appended to the matchkey just before the format character. This allows the system to distinguish which algorithm version produced a given matchkey in the Solr index.</li>
+</ul>
+<strong>Previous version changes (02-03-26):</strong>
+<ul>
+    <li>Title field expanded from 70 to 95 characters.</li>
+    <li>Government Document Number (086 $a) removed for HATHI compatibility.</li>
+</ul>
+</div>
+
+<p>The Gold Rush system allows libraries to do in-depth analytics for their cataloged library holdings
+for either themselves or in comparison to other libraries that are already in the system. It supports
+a wide variety of use cases including shared print, weeding, collection building, space planning,
+storage facilities, etc. Due to the wide variety of cataloging sources and the long bibliographic
+history of most collections, no single number (e.g. OCLC, ISBN) can be used for matching purposes.
+This match key uses a variety of elements from the MARC record to bring together common bibliographic
+records. No key is perfect so this particular approach is periodically being modified to improve
+matching within the system.</p>
+
+<h2>MARC Fields Used</h2>
+
+<h3>Title</h3>
+<p>Combine 245 $a $b $p (first occurrence)</p>
+
+<h3>General Media Description</h3>
+<p class="disabled">245 $h &mdash; <strong>DISABLED as of 11-15-22</strong> &mdash; always returns 5 underscores "_____"</p>
+
+<h3>Publication Year</h3>
+<p>First check control field 008: if character 6 equals 'r' retrieve reissue date from characters 7&ndash;10;
+if there is a government document (086$a exists) always use date from characters 7&ndash;10;
+otherwise use date from characters 11&ndash;14 (if valid and &ge; 1200 and &ne; 9999), falling back to 7&ndash;10.
+If no valid date found, check 264$c then 260$c. For 264$c and 260$c, get the rightmost
+4 digits giving precedence to years preceded by 'c'. If still no valid date found return "0000".
+NOTE: character count starts at 0.</p>
+
+<h3>Pagination</h3>
+<p>300 $a</p>
+
+<h3>Edition Statement</h3>
+<p>250 $a &mdash; if the field is empty and the format is "Book" mark this as a 1st edition "1__".</p>
+
+<h3>Publisher Name</h3>
+<p>First check 264 $b then 260 $b. Ampersands are removed, then diacritics and
+non-alphanumeric characters (other than spaces) are automatically removed via
+stripPuncuation(). Convert to lowercase, remove underscores, normalize accents,
+and pad with underscores to 5 characters.</p>
+
+<h3>Type of</h3>
+<p>Character #6 of Leader</p>
+
+<h3>Title Part</h3>
+<p>245 $p all multi-valued $p fields</p>
+
+<h3>Title Number</h3>
+<p>245 $n</p>
+
+<h3>Author</h3>
+<p>100 $a, 110 $a, 111 $a, 130 $a</p>
+
+<h3>Title-Inclusive Dates</h3>
+<p>245 $f</p>
+
+<h3>Government Document Number</h3>
+<p class="removed">086 $a &mdash; <strong>REMOVED from match key as of 02-03-26</strong> for HATHI compatibility.</p>
+
+<h3>Version String</h3>
+<p class="new"><strong>NEW in _v03182026:</strong> The version string (e.g. <code>_v03182026</code>) is appended
+to the matchkey just before the format character. This identifies which algorithm version produced the key.</p>
+
+<h3>Electronic Indicator</h3>
+<p>Check 245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856 combination,
+and MARC filename; appending 'e' if resource is electronic otherwise appending 'p'.</p>
+
+
+<h2>Match Key Structure</h2>
+
+<div class="note">Each section is padded with underscores to create the desired character count.
+If a field is multi-valued, take the first value unless specified.</div>
+
+<table>
+<thead>
+<tr><th>Chars</th><th>Element</th><th>MARC Source</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr>
+    <td>95</td><td>Title</td><td>245 $a $b $p</td>
+    <td>Combine $a $b and $p applying stripPuncuation_SPACE() to each, then remove all spaces, trim(), normalizeString(), pad_with_underscores( 95 ).
+    <br><strong>NOTE:</strong> If the first MARC 245$6 field indicates a linked 880 field, the 880 field is used instead. For non-Roman languages without an 880 field, falls back to LLC number, ISBN, or ISSN.</td>
+</tr>
+<tr class="disabled">
+    <td>5</td><td>General Media Designation (GMD)</td><td>245 $h</td>
+    <td><strong>DISABLED (11-15-22)</strong> &mdash; Always returns "_____".</td>
+</tr>
+<tr>
+    <td>4</td><td>Publication Year</td><td>008, 264 $c, 260 $c</td>
+    <td>First check 008 field (see above for reissue/gov doc logic). If no valid number, check 264$c then 260$c. Get rightmost 4 digits, giving precedence to years preceded by 'c'. If not found return "0000". pad_with_underscores( 4 )</td>
+</tr>
+<tr>
+    <td>4</td><td>Pagination</td><td>300 $a</td>
+    <td>First four contiguous numeric characters are used. If there are fewer than four contiguous numeric characters, or if there is no source field, these bytes are assigned underscores. pad_with_underscores( 4 )</td>
+</tr>
+<tr>
+    <td>3</td><td>Edition Statement</td><td>250 $a</td>
+    <td>First three, first two or first contiguous numeric characters is used. If there are no numeric characters, then the first three, first two or first contiguous alphabetic characters is used. Diacritics are automatically removed. Convert 'fir' to 1, 'sec' to 2, 'thi' to 3, 'for' to 4, 'fif' to 5, 'six' to 6, 'sev' to 7, 'eig' to 8, 'nin' to 9, '10t' to 10. If edition is empty and format is "Book", defaults to "1__" (1st edition). pad_with_underscores( 3 )</td>
+</tr>
+<tr>
+    <td>5</td><td>Publisher Name</td><td>264 $b, 260 $b</td>
+    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 )</td>
+</tr>
+<tr>
+    <td>1</td><td>Type of</td><td>Leader</td>
+    <td>Character #6. If leader contains 10 or more characters return the 6th character of the leader.</td>
+</tr>
+<tr>
+    <td>30</td><td>Title Part</td><td>245 $p</td>
+    <td>If multiple $p subfields, take the first 10 characters of each. trim(), stripPuncuation(), pad_with_underscores( 30 ). <strong>NOTE:</strong> The first $p has already been added to the Title section.</td>
+</tr>
+<tr>
+    <td>10</td><td>Title Number</td><td>245 $n</td>
+    <td>stripPuncuation(), pad_with_underscores( 10 )</td>
+</tr>
+<tr>
+    <td>5</td><td>Author</td><td>100 $a, 110 $a, 111 $a, 130 $a</td>
+    <td>Combine the contents of each field applying stripPuncuationAndRemoveAccents() to each. Remove underscores and spaces, convert to lowercase. pad_with_underscores( 5 ).</td>
+</tr>
+<tr>
+    <td>15</td><td>Title-Inclusive Dates</td><td>245 $f</td>
+    <td>Remove all spaces then stripPuncuation(), padWithUnderscores( 15 )</td>
+</tr>
+<tr class="removed">
+    <td>&mdash;</td><td>Government Document Number</td><td>086 $a</td>
+    <td><strong>REMOVED from match key (02-03-26)</strong> for HATHI compatibility.</td>
+</tr>
+<tr class="new">
+    <td>10</td><td>Version String</td><td>&mdash;</td>
+    <td><strong>NEW:</strong> The version string <code>_v03182026</code> is appended here, just before the format character.</td>
+</tr>
+<tr>
+    <td>1</td><td>Format Character</td><td>245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856</td>
+    <td>getFormatCharacter() &mdash; append 'e' for electronic, otherwise 'p'.</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Post-processing:</strong> The entire match key is converted to lowercase. Any remaining colons are replaced with 'x'. Any remaining spaces are replaced with underscores.</p>
+
+
+<h2>Appendix &mdash; Method Definitions</h2>
+
+<h3>stripPuncuation( String input )</h3>
+<p>Example: <code>'EP 1.1/5:'</code> becomes <code>'EP_1_1_5'</code></p>
+<pre>
+input = input.replace( "%22", "_" );
+input = input.replace( "%", "_" );
+
+    // Remove leading 'a' or 'A' and surrounding spaces.
+input = input.replaceFirst( "^[ ]+[aA][ ]+"  , "");
+
+    // Remove leading 'an' or 'An' and surrounding spaces.
+input = input.replaceFirst( "^[ ]+[aA]n[ ]+" , "");
+
+    // Remove leading 'the' or 'The' and surrounding spaces.
+input = input.replaceFirst( "^[ ]+[tT]he[ ]+", "");
+
+input = input.replace(  "'", "" );          //39
+input = input.replace(  "{", "" );          //123
+input = input.replace(  "}", "" );          //125
+input = input.replace(  "&amp;", "and" );       //38
+
+// Characters replaced with underscore:
+//  space ! " # $ ( ) * + , - . / : ; &lt; = &gt; ? @ [ \ ] ^ _ ` | ~ (c)
+</pre>
+
+<h3>stripPuncuation_SPACE( String input )</h3>
+<p>Same as stripPuncuation() except characters are replaced with <strong>spaces</strong>
+instead of underscores. This is used for the title to handle punctuation at the end of the title.</p>
+<pre>
+EXAMPLE:
+  stripPuncuation_SPACE( "The law of primitive man /" ).trim()
+  stripPuncuation_SPACE( "The law of primitive man;"  ).trim()
+  stripPuncuation_SPACE( "The law of primitive man : ").trim()
+
+  All return "The law of primitive man"
+</pre>
+
+<h3>padWithUnderscores( String input, Integer count )</h3>
+<p>Replace repeating spaces with single space. Replace all spaces with underscores.
+Trim to <em>count</em> characters. If shorter, pad the end with underscores.</p>
+
+<h3>stripPuncuationAndRemoveAccents( String input )</h3>
+<pre>tempString = stripPuncuation( input )
+output = normalizeStringAndRemoveAccents( tempString )</pre>
+
+<h3>normalizeString( String input )</h3>
+<pre>output = java.text.Normalizer.normalize( input, Form.NFD )</pre>
+
+<h3>normalizeStringAndRemoveAccents( String input )</h3>
+<pre>output = java.text.Normalizer.normalize( input, Form.NFD )
+            .replaceAll( "\\p{InCombiningDiacriticalMarks}" )</pre>
+
+<h3>getFormatCharacter( Record )</h3>
+<p>This format character is appended to the matchKey.</p>
+<pre>
+First check for pre-RDA...
+  if ( 245$h contains "electronic resource"
+    OR 590$a contains "electronic reproduction"
+    OR 533$a contains "electronic reproduction"
+    OR 300$a contains "online resource"
+    OR control field 007 starts with 'C' )  return 'e'
+
+Next check for RDA...
+  if ( 337$a starts with 'c' )  return 'e'
+
+Next check for electronic government document...
+  if ( 086 not null AND 856 not null )  return 'e'
+
+Next check MARC file name...
+  if ( file name contains "electronic" or "ebook" )  record 'Electronic'
+  if ( file name contains "physical" or "print" )  remove 'Electronic', return 'p'
+
+if ( format contains 'Electronic' )  return 'e'
+otherwise  return 'p'
+</pre>
+
+
+<h2>Match Key Example</h2>
+
+<div class="example">
+<p><strong>Generated matchkey:</strong></p>
+<pre>americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v03182026e</pre>
+
+<p><strong>Key breakdown:</strong></p>
+<table>
+<tr><th>Component</th><th>Chars</th><th>Value</th></tr>
+<tr><td>Title</td><td>95</td><td><code>americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________</code></td></tr>
+<tr><td>GMD</td><td>5</td><td><code>_____</code> (disabled)</td></tr>
+<tr><td>Pub Year</td><td>4</td><td><code>2008</code></td></tr>
+<tr><td>Pagination</td><td>4</td><td><code>____</code></td></tr>
+<tr><td>Edition</td><td>3</td><td><code>___</code></td></tr>
+<tr><td>Publisher</td><td>5</td><td><code>distr</code></td></tr>
+<tr><td>Type</td><td>1</td><td><code>a</code></td></tr>
+<tr><td>Title Part</td><td>30</td><td><code>______________________________</code></td></tr>
+<tr><td>Title Number</td><td>10</td><td><code>__________</code></td></tr>
+<tr><td>Author</td><td>5</td><td><code>ameri</code></td></tr>
+<tr><td>Title Dates</td><td>15</td><td><code>_______________</code></td></tr>
+<tr class="new"><td>Version</td><td>10</td><td><code>_v03182026</code></td></tr>
+<tr><td>Format</td><td>1</td><td><code>e</code></td></tr>
+</table>
+
+<p><strong>Source MARC record:</strong></p>
+<pre>
+000   02801nam a22005052u 4500
+001   991034738289702766
+008   080101s2008 xxu|||| st ||| ||eng d
+110 2 $a American Council of Learned Societies.
+245 10 $a American Council of Learned Societies Annual Report for the
+         Years 2006-2007 and 2005-2006 $h [electronic resource].
+260   $a [S.l.] : $b Distributed by ERIC Clearinghouse, $c 2008.
+300   $a 1 online resource (66 p.)
+</pre>
+</div>
+
+<hr>
+<p><em>Colorado Alliance of Research Libraries &mdash; Gold Rush Match Key Documentation v03-18-26 (_v03182026)</em></p>
+
+</body>
+</html>
