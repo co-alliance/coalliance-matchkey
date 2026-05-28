@@ -11,6 +11,7 @@ dependency-reduced-pom.xml
 *.class
 *.jar
 !lib/**/*.jar
+!dist/**/*.jar
 
 # IntelliJ
 .idea/
