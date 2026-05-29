@@ -35,6 +35,13 @@
         <maven.compiler.target>11</maven.compiler.target>
         <marc4j.version>2.9.6</marc4j.version>
         <junit.version>5.10.2</junit.version>
+        <!--
+            Algorithm version embedded in the jar filename, matching the version
+            string that MatchKeyVersion.VERSION inserts into every generated
+            matchkey. When bumping the matchkey algorithm, change both this and
+            MatchKeyVersion.VERSION in the same commit.
+        -->
+        <matchkey.algorithmVersion>v03182026</matchkey.algorithmVersion>
     </properties>
 
     <dependencies>
@@ -53,6 +60,7 @@
     </dependencies>
 
     <build>
+        <finalName>coa_matchkey_${matchkey.algorithmVersion}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
