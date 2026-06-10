@@ -29,10 +29,13 @@ import static org.coalliance.matchkey.util.PuncuationStripper.stripPuncuation;
  * <p>Real MARC records normally carry at most one of these fields; concatenation
  * is defensive behaviour from the indexer for unusual records.
  *
- * <p>The indexer's source applies {@code stripPuncuationAndRemoveAccents} twice
- * to each value — once on the raw subfield and once on the result. The pair of
- * operations is idempotent so the second call is a no-op; this library applies
- * the cleaning once.
+ * <p>The indexer applies {@code stripPuncuationAndRemoveAccents} twice to each
+ * value — once on the raw subfield and once on the result — and this library
+ * matches that. The second pass is NOT always a no-op: when the $a begins with
+ * punctuation (e.g. {@code "[Faidit, Hugues]"} or a leading quote), the first
+ * pass converts the leading bracket/quote to {@code "_"} and the second pass
+ * strips that leading {@code "_"}. Cleaning only once would leave the underscore
+ * and shift the author window, diverging from the production index.
  *
  * <p>Field 113 was used historically; the indexer changed to 130 on 2023-02-14
  * and this library follows.
@@ -50,12 +53,22 @@ public final class AuthorExtractor {
         for (String tag : AUTHOR_FIELDS) {
             DataField field = (DataField) record.getVariableField(tag);
             if (field != null && field.getSubfield('a') != null) {
-                result.append(clean(field.getSubfield('a').getData()));
+                // Match the indexer's extraction exactly: it reads the subfield via
+                // toString() (which yields "$a<data>") and strips the "$a" prefix,
+                // then applies the clean step TWICE.
+                String raw = field.getSubfield('a').toString().replace("$a", "");
+                result.append(clean(clean(raw)));
             }
         }
         return padWithUnderscores(result.toString(), OUTPUT_WIDTH);
     }
 
+    // stripPuncuation + removeAccents, the composition the indexer calls
+    // stripPuncuationAndRemoveAccents. Applied TWICE per field above: this is NOT
+    // a no-op when the $a starts with punctuation (e.g. "[Faidit, Hugues]" or a
+    // leading quote). The first pass turns the leading "[" into "_"; the second
+    // pass strips that now-leading "_". Applying it once would leave the "_" and
+    // shift the 5-char author window, diverging from the production index.
     private static String clean(String raw) {
         return removeAccents(stripPuncuation(raw));
     }

@@ -30,10 +30,28 @@ class MatchKeyGeneratorTest {
     }
 
     @Test
-    @DisplayName("matchKey is always exactly 188 characters")
-    void matchkeyWidth() {
+    @DisplayName("matchKey is 188 characters when title and publisher are present")
+    void matchkeyWidthFullRecord() {
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
+        DataField f245 = marcFactory.newDataField("245", '1', '0');
+        f245.addSubfield(marcFactory.newSubfield('a', "Some Title"));
+        r.addVariableField(f245);
+        DataField f264 = marcFactory.newDataField("264", ' ', '1');
+        f264.addSubfield(marcFactory.newSubfield('b', "Some Publisher"));
+        r.addVariableField(f264);
         assertEquals(188, generator.generate(r).length());
+    }
+
+    @Test
+    @DisplayName("title-less, publisher-less record yields a SHORT 88-char key (both sections zero-width)")
+    void matchkeyWidthBareRecord() {
+        // Matches the production indexer: a record with no 245 and no 264/260 (e.g. a
+        // MARC holdings record, Leader/06='x') emits a zero-width title (95) and a
+        // zero-width publisher (5), so the key is 188 - 95 - 5 = 88. The Gold Rush
+        // index stores these short keys; padding them would break matching for every
+        // such record. See TitleExtractor / PublisherExtractor empty-input handling.
+        Record r = marcFactory.newRecord("02801nam a22005052u 4500");
+        assertEquals(88, generator.generate(r).length());
     }
 
     @Test

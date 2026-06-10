@@ -91,6 +91,17 @@ public final class FormatCharExtractor {
                 return true;
             }
         }
+
+        // Leader/06 (type of record) == 'm' => computer file / electronic resource.
+        // Matches getFormat_pre_RDA: leader chars 6-7 uppercased, startsWith "M".
+        // Guarded on length >= 10 exactly as the indexer is. Without this, online
+        // audio/video records (Leader/06='m', no 245$h, 007 not starting 'C') are
+        // mis-tagged 'p'.
+        String leader = record.getLeader() == null ? null : record.getLeader().toString();
+        if (leader != null && leader.length() >= 10
+                && leader.substring(6, 8).toUpperCase().startsWith("M")) {
+            return true;
+        }
         return false;
     }
 

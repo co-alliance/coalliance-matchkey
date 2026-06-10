@@ -87,4 +87,15 @@ class AuthorExtractorTest {
         assertEquals("_____", extractor.extract(withField("113", "Some uniform")));
         assertEquals("Unifo", extractor.extract(withField("130", "Uniform title")));
     }
+
+    @Test
+    @DisplayName("leading bracket/punctuation is removed by the double clean (no leading underscore)")
+    void leadingPunctuationStrippedByDoubleClean() {
+        // "[Faidit, Hugues]," — the indexer cleans each value TWICE. Pass 1 turns the
+        // leading "[" into "_"; pass 2 strips that now-leading "_". A single clean
+        // would leave "_faid" and shift the 5-char author window, diverging from the
+        // production index. Result here is "Faidi" (the extractor does not lowercase;
+        // iiiMatchKey lowercases the whole key downstream).
+        assertEquals("Faidi", extractor.extract(withField("100", "[Faidit, Hugues],")));
+    }
 }

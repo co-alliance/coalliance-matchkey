@@ -89,6 +89,19 @@ class FormatCharExtractorTest {
     }
 
     @Test
+    @DisplayName("Leader/06 'm' (computer file) returns 'e' even with no other electronic markers")
+    void electronicViaLeaderType() {
+        // Leader position 6 == 'm' => computer file / electronic resource, matching
+        // the indexer's getFormat_pre_RDA leader-type branch. Online audio/video
+        // records (Leader/06='m', 007 not starting 'C', no 245$h) rely on this.
+        Record r = marcFactory.newRecord("02801nmm a22005052u 4500"); // Leader/06 = 'm'
+        DataField f245 = marcFactory.newDataField("245", '1', '0');
+        f245.addSubfield(marcFactory.newSubfield('a', "Streaming Audio Work"));
+        r.addVariableField(f245);
+        assertEquals("e", noHint().extract(r));
+    }
+
+    @Test
     @DisplayName("filename hint containing 'electronic' returns 'e'")
     void filenameElectronic() {
         FormatCharExtractor x = new FormatCharExtractor("cu-electronic-2026-04.marc");

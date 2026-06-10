@@ -18,7 +18,10 @@ class TitleExtractorTest {
     private final TitleExtractor extractor = new TitleExtractor();
     private final MarcFactory marcFactory = MarcFactory.newInstance();
 
-    private static final String EMPTY = repeatUnderscores(95);
+    // Missing 245 emits a ZERO-WIDTH title section (matches the production indexer's
+    // title_field245ab880abIfLinked, which returns "" when the 245 is absent). A
+    // present title is still padded to 95; only a wholly absent 245 yields "".
+    private static final String EMPTY = "";
     private static final String CHI_008 = "150101s2014    xxu                 chi d";
     private static final String ENG_008 = "150101s2014    xxu                 eng d";
 
@@ -60,7 +63,7 @@ class TitleExtractorTest {
     }
 
     @Test
-    @DisplayName("missing 245 returns 95 underscores")
+    @DisplayName("missing 245 returns an empty string (zero-width section, NOT 95 underscores)")
     void noTitle() {
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
         assertEquals(EMPTY, extractor.extract(r));

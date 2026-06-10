@@ -68,7 +68,14 @@ public final class PublisherExtractor {
 
     private static String cleanup(String input) {
         if (input == null || input.trim().isEmpty()) {
-            return padWithUnderscores("", OUTPUT_WIDTH);
+            // Empty publisher emits a ZERO-WIDTH section, NOT five underscores.
+            // This intentionally reproduces the production indexer
+            // (CoAllianceIndexUtil.publisher_MK_cleanup, which returns "" for a
+            // blank publisher and only pads non-empty values to 5). Padding the
+            // empty case here would make this library's keys 5 chars longer than
+            // every matchKey already stored in the Gold Rush index, so records
+            // with no publisher would stop matching. Do not "fix" this to pad.
+            return "";
         }
         String work = input.replace("&", "");
         work = stripPuncuation(work.trim()).replace("_", "");

@@ -17,7 +17,10 @@ class PublisherExtractorTest {
     private final PublisherExtractor extractor = new PublisherExtractor();
     private final MarcFactory marcFactory = MarcFactory.newInstance();
 
-    private static final String EMPTY = "_____";
+    // Empty publisher emits a ZERO-WIDTH section (matches the production indexer's
+    // publisher_MK_cleanup, which returns "" for a blank publisher; only non-empty
+    // values are padded to 5). See PublisherExtractor.cleanup().
+    private static final String EMPTY = "";
 
     private Record withSubfield(String tag, char code, String value) {
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
@@ -28,7 +31,7 @@ class PublisherExtractorTest {
     }
 
     @Test
-    @DisplayName("no 264 or 260 returns 5 underscores")
+    @DisplayName("no 264 or 260 returns an empty string (zero-width section, NOT 5 underscores)")
     void noPublisherField() {
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
         assertEquals(EMPTY, extractor.extract(r));

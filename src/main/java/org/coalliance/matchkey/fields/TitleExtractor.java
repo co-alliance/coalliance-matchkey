@@ -48,7 +48,13 @@ public final class TitleExtractor {
     public String extract(Record record) {
         DataField titleField = (DataField) record.getVariableField("245");
         if (titleField == null) {
-            return padWithUnderscores("", OUTPUT_WIDTH);
+            // No 245 field at all => zero-width title section, NOT 95 underscores.
+            // Matches the production indexer (title_field245ab880abIfLinked returns
+            // "" when the 245 is absent). 245-less records (e.g. MARC holdings,
+            // Leader/06='x') therefore yield a short key, exactly as the Gold Rush
+            // index already stores them. Padding here would make every such record
+            // 95 chars longer than its stored key. Do not "fix" this to pad.
+            return "";
         }
 
         String fallback = nonRomanFallback(record);

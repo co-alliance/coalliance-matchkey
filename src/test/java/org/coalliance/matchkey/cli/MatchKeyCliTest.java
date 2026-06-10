@@ -51,6 +51,11 @@ class MatchKeyCliTest {
         DataField f245 = marcFactory.newDataField("245", '1', '0');
         f245.addSubfield(marcFactory.newSubfield('a', title));
         r.addVariableField(f245);
+        // include a publisher so this is a "full" record whose key is the full 188
+        // chars (an empty publisher legitimately yields a 183-char key).
+        DataField f264 = marcFactory.newDataField("264", ' ', '1');
+        f264.addSubfield(marcFactory.newSubfield('b', "A Publisher"));
+        r.addVariableField(f264);
         return r;
     }
 
