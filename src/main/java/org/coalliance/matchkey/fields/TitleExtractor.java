@@ -48,13 +48,16 @@ public final class TitleExtractor {
     public String extract(Record record) {
         DataField titleField = (DataField) record.getVariableField("245");
         if (titleField == null) {
-            // No 245 field at all => zero-width title section, NOT 95 underscores.
-            // Matches the production indexer (title_field245ab880abIfLinked returns
-            // "" when the 245 is absent). 245-less records (e.g. MARC holdings,
-            // Leader/06='x') therefore yield a short key, exactly as the Gold Rush
-            // index already stores them. Padding here would make every such record
-            // 95 chars longer than its stored key. Do not "fix" this to pad.
-            return "";
+            // 07-31-26 No 245 field at all => 95 underscores, like every other
+            // empty section. Through _v03182026 this returned "" (zero width),
+            // which made 245-less records (MARC holdings, Leader/06='x') produce
+            // a SHORT key and contradicted the spec's rule that every section is
+            // padded to its fixed character count. It was also inconsistent: a
+            // 245 that was present but whose $a$b$p cleaned to nothing already
+            // padded to 95 here. Reported by Ed Summers (Stanford/POD) after
+            // 7% of 39M records came out off-length.
+            // https://github.com/co-alliance/coalliance-matchkey/issues/1
+            return padWithUnderscores("", OUTPUT_WIDTH);
         }
 
         String fallback = nonRomanFallback(record);

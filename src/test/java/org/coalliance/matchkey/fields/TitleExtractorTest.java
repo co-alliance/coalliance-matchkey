@@ -18,10 +18,9 @@ class TitleExtractorTest {
     private final TitleExtractor extractor = new TitleExtractor();
     private final MarcFactory marcFactory = MarcFactory.newInstance();
 
-    // Missing 245 emits a ZERO-WIDTH title section (matches the production indexer's
-    // title_field245ab880abIfLinked, which returns "" when the 245 is absent). A
-    // present title is still padded to 95; only a wholly absent 245 yields "".
-    private static final String EMPTY = "";
+    // 07-31-26 (_v07312026) A missing 245 pads to 95 underscores like every other
+    // empty section. Through _v03182026 it emitted a zero-width section.
+    private static final String EMPTY = "_".repeat(95);
     private static final String CHI_008 = "150101s2014    xxu                 chi d";
     private static final String ENG_008 = "150101s2014    xxu                 eng d";
 
@@ -63,10 +62,19 @@ class TitleExtractorTest {
     }
 
     @Test
-    @DisplayName("missing 245 returns an empty string (zero-width section, NOT 95 underscores)")
+    @DisplayName("missing 245 pads to 95 underscores (_v07312026; was zero-width through _v03182026)")
     void noTitle() {
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
         assertEquals(EMPTY, extractor.extract(r));
+        assertEquals(95, extractor.extract(r).length());
+    }
+
+    @Test
+    @DisplayName("a 245 present but with no $a$b$p pads to 95, same as an absent 245")
+    void emptySubfieldsMatchAbsent245() {
+        // Regression for the inconsistency that motivated the _v07312026 change:
+        // a present-but-empty 245 was already padded, while an ABSENT 245 was not.
+        assertEquals(EMPTY, extractor.extract(withTitle("a", "")));
     }
 
     @Test

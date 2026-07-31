@@ -68,14 +68,15 @@ public final class PublisherExtractor {
 
     private static String cleanup(String input) {
         if (input == null || input.trim().isEmpty()) {
-            // Empty publisher emits a ZERO-WIDTH section, NOT five underscores.
-            // This intentionally reproduces the production indexer
-            // (CoAllianceIndexUtil.publisher_MK_cleanup, which returns "" for a
-            // blank publisher and only pads non-empty values to 5). Padding the
-            // empty case here would make this library's keys 5 chars longer than
-            // every matchKey already stored in the Gold Rush index, so records
-            // with no publisher would stop matching. Do not "fix" this to pad.
-            return "";
+            // 07-31-26 An absent 264$b/260$b => five underscores, like every
+            // other empty section. Through _v03182026 this returned "" (zero
+            // width), producing a SHORT key that contradicted the spec's rule
+            // that every section is padded to its fixed character count. It was
+            // also inconsistent: a publisher of "&" already cleaned to nothing
+            // and padded to 5 here. Reported by Ed Summers (Stanford/POD) after
+            // 7% of 39M records came out off-length.
+            // https://github.com/co-alliance/coalliance-matchkey/issues/1
+            return padWithUnderscores("", OUTPUT_WIDTH);
         }
         String work = input.replace("&", "");
         work = stripPuncuation(work.trim()).replace("_", "");

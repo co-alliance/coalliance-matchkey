@@ -43,15 +43,44 @@ class MatchKeyGeneratorTest {
     }
 
     @Test
-    @DisplayName("title-less, publisher-less record yields a SHORT 88-char key (both sections zero-width)")
+    @DisplayName("title-less, publisher-less record is still 188 characters (_v07312026)")
     void matchkeyWidthBareRecord() {
-        // Matches the production indexer: a record with no 245 and no 264/260 (e.g. a
-        // MARC holdings record, Leader/06='x') emits a zero-width title (95) and a
-        // zero-width publisher (5), so the key is 188 - 95 - 5 = 88. The Gold Rush
-        // index stores these short keys; padding them would break matching for every
-        // such record. See TitleExtractor / PublisherExtractor empty-input handling.
+        // 07-31-26 A record with no 245 and no 264/260 (e.g. a MARC holdings record,
+        // Leader/06='x') now pads both sections to full width, so the key is 188 like
+        // every other key. Through _v03182026 those sections were zero-width and this
+        // record produced a short 88-char key (188 - 95 - 5). Keys are now fixed-width
+        // as the specification has always described.
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
-        assertEquals(88, generator.generate(r).length());
+        assertEquals(188, generator.generate(r).length());
+    }
+
+    @Test
+    @DisplayName("every key is 188 characters regardless of which sections are absent")
+    void matchkeyWidthIsAlwaysFixed() {
+        // The four record shapes that produced 188/183/93/88 through _v03182026.
+        Record bare = marcFactory.newRecord("02801nam a22005052u 4500");
+
+        Record titleOnly = marcFactory.newRecord("02801nam a22005052u 4500");
+        DataField t245 = marcFactory.newDataField("245", '1', '0');
+        t245.addSubfield(marcFactory.newSubfield('a', "Some Title"));
+        titleOnly.addVariableField(t245);
+
+        Record publisherOnly = marcFactory.newRecord("02801nam a22005052u 4500");
+        DataField p264 = marcFactory.newDataField("264", ' ', '1');
+        p264.addSubfield(marcFactory.newSubfield('b', "Some Publisher"));
+        publisherOnly.addVariableField(p264);
+
+        Record both = marcFactory.newRecord("02801nam a22005052u 4500");
+        DataField b245 = marcFactory.newDataField("245", '1', '0');
+        b245.addSubfield(marcFactory.newSubfield('a', "Some Title"));
+        both.addVariableField(b245);
+        DataField b264 = marcFactory.newDataField("264", ' ', '1');
+        b264.addSubfield(marcFactory.newSubfield('b', "Some Publisher"));
+        both.addVariableField(b264);
+
+        for (Record r : new Record[] { bare, titleOnly, publisherOnly, both }) {
+            assertEquals(188, generator.generate(r).length());
+        }
     }
 
     @Test

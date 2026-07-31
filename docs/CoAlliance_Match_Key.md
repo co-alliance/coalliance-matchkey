@@ -1,8 +1,28 @@
 
 Colorado Alliance MARC record match key generation.
-March-18-2026 (_v03182026)
+July-31-2026 (_v07312026)
 
-What's new in _v03182026:
+What's new in _v07312026:
+	Every match key is now exactly 188 characters.
+
+	Two sections could previously collapse to zero width instead of being
+	padded, which produced short keys:
+		- Title: a record with no 245 field at all (for example a MARC
+		  holdings record, Leader/06 = 'x') emitted nothing instead of
+		  95 underscores.
+		- Publisher Name: a record with no 264 $b and no 260 $b emitted
+		  nothing instead of 5 underscores.
+	Keys could therefore be 188, 183, 93 or 88 characters long. Both cases
+	now pad to their full section width, as this document has always
+	specified. Reported by Ed Summers (Stanford University Libraries / POD),
+	who found that 7% of 39 million records produced off-length keys.
+	See https://github.com/co-alliance/coalliance-matchkey/issues/1
+
+	NOTE: a key ending in "_v03182026" is NOT comparable to one ending in
+	"_v07312026" for records that lack a 245 or a publisher. Records must be
+	reindexed to carry the new key.
+
+Previous version changes (03-18-26):
 	A version string "_v03182026" is now appended to the matchkey just
 	before the format character. This allows the system to distinguish
 	which algorithm version produced a given matchkey in the Solr index.
@@ -60,9 +80,9 @@ Government Document Number
 	086 $a — **REMOVED from match key as of 02-03-26** for HATHI compatibility.
 
 Version String
-	**NEW in _v03182026:** The version string (e.g. "_v03182026") is
-	appended to the matchkey just before the format character. This
-	identifies which algorithm version produced the key.
+	The version string (currently "_v07312026") is appended to the
+	matchkey just before the format character. This identifies which
+	algorithm version produced the key.
 
 Electronic indicator
 	Check 245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856 combination,
@@ -73,29 +93,41 @@ Electronic indicator
 Match Key Section description.
 
 NOTE: Each section is padded with underscores to create the desired character count.
+This applies with no exceptions. A section whose source field is absent, empty, or
+reduced to nothing by cleaning is still emitted at its full width as underscores, so
+every match key is exactly 188 characters. (Through _v03182026 the Title and
+Publisher Name sections did not follow this rule — see "What's new" above.)
 
 If a field is multi-valued, take the first value unless specified.
 Functions (in bold) are described in appendix.
 
 | Chars | Element | MARC Source | Notes |
 |-------|---------|-------------|-------|
-| 95 | Title | 245 $a $b $p | Combine $a $b and $p applying strip_punctuation_SPACE() to each, then remove all spaces, trim(), normalizeString(), pad_with_underscores( 95 ). **NOTE:** If the first MARC 245$6 field indicates a linked 880 field, the 880 field is used instead. For non-Roman languages without an 880 field, falls back to LLC number, ISBN, or ISSN. |
+| 95 | Title | 245 $a $b $p | Combine $a $b and $p applying strip_punctuation_SPACE() to each, then remove all spaces, trim(), normalizeString(), pad_with_underscores( 95 ). If the record has no 245 field at all (e.g. a MARC holdings record, Leader/06='x'), the section is 95 underscores. **NOTE:** If the first MARC 245$6 field indicates a linked 880 field, the 880 field is used instead. For non-Roman languages without an 880 field, falls back to LLC number, ISBN, or ISSN. |
 | 5 | General Media Designation (GMD) | 245 $h | **DISABLED (11-15-22)** — Always returns "_____". Previously: the first five contiguous alphanumeric characters, right-padded with underscores. |
 | 4 | Publication Year | 008, 264 $c, 260 $c | First check 008 field (see above for reissue/gov doc logic). If no valid number, check 264$c then 260$c. Get rightmost 4 digits, giving precedence to years preceded by 'c'. If not found return "0000". pad_with_underscores( 4 ) |
 | 4 | Pagination | 300 $a | First four contiguous numeric characters are used. If there are fewer than four contiguous numeric characters, or if there is no source field, these bytes are assigned underscores. pad_with_underscores( 4 ) |
 | 3 | Edition Statement | 250 $a | First three, first two or first contiguous numeric characters is used. If there are no numeric characters, then the first three, first two or first contiguous alphabetic characters is used. Diacritics are automatically removed from this element. Convert 'fir' to 1, 'sec' to 2, 'thi' to 3, 'for' to 4, 'fif' to 5, 'six' to 6, 'sev' to 7, 'eig' to 8, 'nin' to 9, '10t' to 10. If edition is empty and format is "Book", defaults to "1__" (1st edition). pad_with_underscores( 3 ) |
-| 5 | Publisher Name | 264 $b, 260 $b | If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 ) |
-| 1 | Type of | Leader | character #6. If leader contains 10 or more characters return the 6th character of the leader. |
+| 5 | Publisher Name | 264 $b, 260 $b | If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 ). If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores. |
+| 1 | Type of | Leader | character #6. If leader contains 10 or more characters return the 6th character of the leader; otherwise the section is a single underscore. |
 | 30 | Title Part | 245 $p | If multiple $p subfields, take the first 10 characters of each. trim(), stripPuncuation(), pad_with_underscores( 30 ). **NOTE:** The first $p has already been added to the Title section. |
 | 10 | Title Number | 245 $n | stripPuncuation(), pad_with_underscores( 10 ) |
 | 5 | Author | 100 $a, 110 $a, 111 $a, 130 $a | Combine the contents of each field applying stripPuncuationAndRemoveAccents() to each. Remove underscores and spaces, convert to lowercase. pad_with_underscores( 5 ). |
 | 15 | Title-Inclusive Dates | 245 $f | Remove all spaces then stripPuncuation(), padWithUnderscores( 15 ) |
 | — | Government Document Number | 086 $a | **REMOVED from match key (02-03-26)** for HATHI compatibility. Previously: stripPuncuationAndRemoveAccents(), trimMAXfieldLength(). |
-| 10 | Version String | — | **NEW in _v03182026:** The version string "_v03182026" is appended here, just before the format character. |
+| 10 | Version String | — | The version string (currently "_v07312026") is appended here, just before the format character. |
 | 1 | Format Character | 245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856 | getFormatCharacter() — append 'e' for electronic, otherwise 'p'. |
 
 
-Post-processing: The entire match key is converted to lowercase. Any remaining colons are replaced with 'x'. Any remaining spaces are replaced with underscores.
+Post-processing: The entire match key is converted to lowercase, then any remaining
+spaces are replaced with underscores.
+
+NOTE: earlier revisions of this document also described colons being replaced with
+'x'. That replacement was written into the indexer on 05-16-18 but has never taken
+effect (the statement that applied it was immediately overwritten by the space
+replacement), so no released match key has ever had it. Colons are already removed
+at the section level by stripPuncuation(). The claim is dropped here rather than
+implemented, to keep this document a description of what the algorithm actually does.
 
 
 Appendix - Method definitions
@@ -290,7 +322,7 @@ String getFormatCharacter( Record ){ //Note: this format character is appended t
 
 Match Key Example
 
-americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v03182026e
+americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v07312026e
 
 000 	02801nam a22005052u 4500
 001	991034738289702766
@@ -347,5 +379,5 @@ Key breakdown:
 - Title Number (10): "__________"
 - Author (5): "ameri"
 - Title Dates (15): "_______________"
-- Version (10): "_v03182026"
+- Version (10): "_v07312026"
 - Format (1): "e"

@@ -22,11 +22,30 @@
 </head>
 <body>
 
-<h1>Colorado Alliance MARC Record Match Key — v03-18-26 (_v03182026)</h1>
-<p><em>March 18, 2026.</em></p>
+<h1>Colorado Alliance MARC Record Match Key — v07-31-26 (_v07312026)</h1>
+<p><em>July 31, 2026.</em></p>
 
 <div class="change-note">
-<strong>What's new in _v03182026:</strong>
+<strong>What's new in _v07312026:</strong>
+<ul>
+    <li><strong>Every match key is now exactly 188 characters.</strong> Two sections could previously
+        collapse to zero width instead of being padded, which produced short keys of 188, 183, 93 or 88
+        characters:
+        <ul>
+            <li><em>Title</em> — a record with no 245 field at all (for example a MARC holdings record,
+                Leader/06 = 'x') emitted nothing instead of 95 underscores.</li>
+            <li><em>Publisher Name</em> — a record with no 264 $b and no 260 $b emitted nothing instead
+                of 5 underscores.</li>
+        </ul>
+        Both cases now pad to their full section width, as this document has always specified.
+        Reported by Ed Summers (Stanford University Libraries / POD), who found that 7% of 39 million
+        records produced off-length keys
+        (<a href="https://github.com/co-alliance/coalliance-matchkey/issues/1">issue #1</a>).</li>
+    <li>A key ending in <code>_v03182026</code> is <strong>not</strong> comparable to one ending in
+        <code>_v07312026</code> for records that lack a 245 or a publisher. Records must be reindexed
+        to carry the new key.</li>
+</ul>
+<strong>Previous version changes (03-18-26):</strong>
 <ul>
     <li>A version string <code>_v03182026</code> is now appended to the matchkey just before the format character. This allows the system to distinguish which algorithm version produced a given matchkey in the Solr index.</li>
 </ul>
@@ -93,7 +112,7 @@ and pad with underscores to 5 characters.</p>
 <p class="removed">086 $a &mdash; <strong>REMOVED from match key as of 02-03-26</strong> for HATHI compatibility.</p>
 
 <h3>Version String</h3>
-<p class="new"><strong>NEW in _v03182026:</strong> The version string (e.g. <code>_v03182026</code>) is appended
+<p class="new">The version string (currently <code>_v07312026</code>) is appended
 to the matchkey just before the format character. This identifies which algorithm version produced the key.</p>
 
 <h3>Electronic Indicator</h3>
@@ -104,6 +123,10 @@ and MARC filename; appending 'e' if resource is electronic otherwise appending '
 <h2>Match Key Structure</h2>
 
 <div class="note">Each section is padded with underscores to create the desired character count.
+This applies with no exceptions: a section whose source field is absent, empty, or reduced to nothing
+by cleaning is still emitted at its full width as underscores, so every match key is exactly 188
+characters. (Through _v03182026 the Title and Publisher Name sections did not follow this rule — see
+"What's new" above.)
 If a field is multi-valued, take the first value unless specified.</div>
 
 <table>
@@ -113,7 +136,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 <tbody>
 <tr>
     <td>95</td><td>Title</td><td>245 $a $b $p</td>
-    <td>Combine $a $b and $p applying stripPuncuation_SPACE() to each, then remove all spaces, trim(), normalizeString(), pad_with_underscores( 95 ).
+    <td>Combine $a $b and $p applying stripPuncuation_SPACE() to each, then remove all spaces, trim(), normalizeString(), pad_with_underscores( 95 ). If the record has no 245 field at all (e.g. a MARC holdings record, Leader/06='x'), the section is 95 underscores.
     <br><strong>NOTE:</strong> If the first MARC 245$6 field indicates a linked 880 field, the 880 field is used instead. For non-Roman languages without an 880 field, falls back to LLC number, ISBN, or ISSN.</td>
 </tr>
 <tr class="disabled">
@@ -134,11 +157,11 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tr>
 <tr>
     <td>5</td><td>Publisher Name</td><td>264 $b, 260 $b</td>
-    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 )</td>
+    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 ). If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores.</td>
 </tr>
 <tr>
     <td>1</td><td>Type of</td><td>Leader</td>
-    <td>Character #6. If leader contains 10 or more characters return the 6th character of the leader.</td>
+    <td>Character #6. If leader contains 10 or more characters return the 6th character of the leader; otherwise the section is a single underscore.</td>
 </tr>
 <tr>
     <td>30</td><td>Title Part</td><td>245 $p</td>
@@ -162,7 +185,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tr>
 <tr class="new">
     <td>10</td><td>Version String</td><td>&mdash;</td>
-    <td><strong>NEW:</strong> The version string <code>_v03182026</code> is appended here, just before the format character.</td>
+    <td>The version string (currently <code>_v07312026</code>) is appended here, just before the format character.</td>
 </tr>
 <tr>
     <td>1</td><td>Format Character</td><td>245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856</td>
@@ -171,7 +194,8 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tbody>
 </table>
 
-<p><strong>Post-processing:</strong> The entire match key is converted to lowercase. Any remaining colons are replaced with 'x'. Any remaining spaces are replaced with underscores.</p>
+<p><strong>Post-processing:</strong> The entire match key is converted to lowercase, then any remaining spaces are replaced with underscores.</p>
+<p class="note">NOTE: earlier revisions of this document also described colons being replaced with 'x'. That replacement was written into the indexer on 05-16-18 but has never taken effect (the statement that applied it was immediately overwritten by the space replacement), so no released match key has ever had it. Colons are already removed at the section level by stripPuncuation(). The claim is dropped here rather than implemented, to keep this document a description of what the algorithm actually does.</p>
 
 
 <h2>Appendix &mdash; Method Definitions</h2>
@@ -256,7 +280,7 @@ otherwise  return 'p'
 
 <div class="example">
 <p><strong>Generated matchkey:</strong></p>
-<pre>americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v03182026e</pre>
+<pre>americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v07312026e</pre>
 
 <p><strong>Key breakdown:</strong></p>
 <table>
@@ -272,7 +296,7 @@ otherwise  return 'p'
 <tr><td>Title Number</td><td>10</td><td><code>__________</code></td></tr>
 <tr><td>Author</td><td>5</td><td><code>ameri</code></td></tr>
 <tr><td>Title Dates</td><td>15</td><td><code>_______________</code></td></tr>
-<tr class="new"><td>Version</td><td>10</td><td><code>_v03182026</code></td></tr>
+<tr class="new"><td>Version</td><td>10</td><td><code>_v07312026</code></td></tr>
 <tr><td>Format</td><td>1</td><td><code>e</code></td></tr>
 </table>
 
@@ -290,7 +314,7 @@ otherwise  return 'p'
 </div>
 
 <hr>
-<p><em>Colorado Alliance of Research Libraries &mdash; Gold Rush Match Key Documentation v03-18-26 (_v03182026)</em></p>
+<p><em>Colorado Alliance of Research Libraries &mdash; Gold Rush Match Key Documentation v07-31-26 (_v07312026)</em></p>
 
 </body>
 </html>
