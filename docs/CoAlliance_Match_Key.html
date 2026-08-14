@@ -117,8 +117,11 @@ NOTE: character count starts at 0.</p>
 <h3>Publisher Name</h3>
 <p>First check 264 $b then 260 $b. Ampersands are removed, then diacritics and
 non-alphanumeric characters (other than spaces) are automatically removed via
-stripPuncuation(). Remove underscores, normalize accents, convert to lowercase,
-and pad with underscores to 5 characters.</p>
+stripPuncuation(). Remove underscores, convert to lowercase, and pad with underscores to 5
+characters. Accented characters are <strong>not</strong> normalized here and are left exactly as
+they appear in the record &mdash; an accent-normalization step was added to the indexer 09-17-25
+but has never taken effect (it guards on the wrong variable), so no key has ever carried a
+normalized publisher.</p>
 
 <h3>Type of</h3>
 <p>Character #6 of Leader</p>
@@ -185,7 +188,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tr>
 <tr>
     <td>5</td><td>Publisher Name</td><td>264 $b, 260 $b</td>
-    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents. pad_with_underscores( 5 ), which lowercases before it measures. If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores.</td>
+    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores. Accents are left as they are &mdash; see the Publisher Name notes above. pad_with_underscores( 5 ), which lowercases before it measures. If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores.</td>
 </tr>
 <tr>
     <td>1</td><td>Type of</td><td>Leader</td>

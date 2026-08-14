@@ -96,8 +96,11 @@ Edition Statement
 Publisher Name
 	First check 264 $b then 260 $b. Ampersands are removed, then diacritics and
 	non-alphanumeric characters (other than spaces) are automatically removed via
-	stripPuncuation(). Remove underscores, normalize accents, convert to lowercase,
-	and pad with underscores to 5 characters.
+	stripPuncuation(). Remove underscores, convert to lowercase, and pad with
+	underscores to 5 characters. Accented characters are NOT normalized here and
+	are left exactly as they appear in the record — an accent-normalization step
+	was added to the indexer 09-17-25 but has never taken effect (it guards on the
+	wrong variable), so no key has ever carried a normalized publisher.
 
 Type of
 	Character #6 of Leader
@@ -147,7 +150,7 @@ Functions (in bold) are described in appendix.
 | 4 | Publication Year | 008, 264 $c, 260 $c | First check 008 field (see above for reissue/gov doc logic). If no valid number, check 264$c then 260$c. Get rightmost 4 digits, giving precedence to years preceded by 'c'. If not found return "0000". pad_with_underscores( 4 ) |
 | 4 | Pagination | 300 $a | First four contiguous numeric characters are used. If there are fewer than four contiguous numeric characters, or if there is no source field, these bytes are assigned underscores. pad_with_underscores( 4 ) |
 | 3 | Edition Statement | 250 $a | First three, first two or first contiguous numeric characters is used. If there are no numeric characters, then the first three, first two or first contiguous alphabetic characters is used. Diacritics are automatically removed from this element. Convert 'fir' to 1, 'sec' to 2, 'thi' to 3, 'for' to 4, 'fif' to 5, 'six' to 6, 'sev' to 7, 'eig' to 8, 'nin' to 9, '10t' to 10. If edition is empty and format is "Book", defaults to "1__" (1st edition). pad_with_underscores( 3 ) |
-| 5 | Publisher Name | 264 $b, 260 $b | If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents. pad_with_underscores( 5 ), which lowercases before it measures. If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores. |
+| 5 | Publisher Name | 264 $b, 260 $b | If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores. Accents are left as they are — see the Publisher Name notes above. pad_with_underscores( 5 ), which lowercases before it measures. If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores. |
 | 1 | Type of | Leader | character #6. If leader contains 10 or more characters return the 6th character of the leader; otherwise the section is a single underscore. |
 | 30 | Title Part | 245 $p | If multiple $p subfields, take the first 10 characters of each. trim(), stripPuncuation(), pad_with_underscores( 30 ). **NOTE:** The first $p has already been added to the Title section. |
 | 10 | Title Number | 245 $n | stripPuncuation(), pad_with_underscores( 10 ) |
