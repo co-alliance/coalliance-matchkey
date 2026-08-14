@@ -43,32 +43,33 @@ class AuthorExtractorTest {
     @Test
     @DisplayName("100$a short name is padded to 5")
     void shortPersonalAuthor() {
-        assertEquals("Smith", extractor.extract(withField("100", "Smith")));
+        assertEquals("smith", extractor.extract(withField("100", "Smith")));
     }
 
     @Test
     @DisplayName("100$a single character is padded to 5")
     void singleChar() {
-        assertEquals("S____", extractor.extract(withField("100", "S")));
+        assertEquals("s____", extractor.extract(withField("100", "S")));
     }
 
     @Test
     @DisplayName("100$a long name is truncated to 5")
     void longName() {
-        assertEquals("Smith", extractor.extract(withField("100", "Smithsonian Institution")));
+        assertEquals("smith", extractor.extract(withField("100", "Smithsonian Institution")));
     }
 
     @Test
     @DisplayName("110$a corporate name (with punctuation) cleans and pads")
     void corporateAuthor() {
-        // "ACME Corp." -> stripPuncuation "ACME_Corp_" -> truncate to 5 -> "ACME_"
-        assertEquals("ACME_", extractor.extract(withField("110", "ACME Corp.")));
+        // "ACME Corp." -> stripPuncuation "ACME_Corp_" -> truncate to 5 -> "acme_"
+        // (lowercased at the pad since _v08142026)
+        assertEquals("acme_", extractor.extract(withField("110", "ACME Corp.")));
     }
 
     @Test
     @DisplayName("diacritics in author name are removed")
     void accentedAuthor() {
-        assertEquals("Perez", extractor.extract(withField("100", "Pérez")));
+        assertEquals("perez", extractor.extract(withField("100", "Pérez")));
     }
 
     @Test
@@ -77,15 +78,15 @@ class AuthorExtractorTest {
         Record r = marcFactory.newRecord("02801nam a22005052u 4500");
         addField(r, "100", "S");
         addField(r, "130", "Doe");
-        // concat = "SDoe" -> pad to 5
-        assertEquals("SDoe_", extractor.extract(r));
+        // concat = "SDoe" -> pad to 5 -> lowercased at the pad since _v08142026
+        assertEquals("sdoe_", extractor.extract(r));
     }
 
     @Test
     @DisplayName("130 is read in place of legacy 113 (changed 2023-02-14)")
     void usesUniformTitle130NotLegacy113() {
         assertEquals("_____", extractor.extract(withField("113", "Some uniform")));
-        assertEquals("Unifo", extractor.extract(withField("130", "Uniform title")));
+        assertEquals("unifo", extractor.extract(withField("130", "Uniform title")));
     }
 
     @Test
@@ -94,8 +95,8 @@ class AuthorExtractorTest {
         // "[Faidit, Hugues]," — the indexer cleans each value TWICE. Pass 1 turns the
         // leading "[" into "_"; pass 2 strips that now-leading "_". A single clean
         // would leave "_faid" and shift the 5-char author window, diverging from the
-        // production index. Result here is "Faidi" (the extractor does not lowercase;
-        // iiiMatchKey lowercases the whole key downstream).
-        assertEquals("Faidi", extractor.extract(withField("100", "[Faidit, Hugues],")));
+        // production index. Result here is "faidi" — since _v08142026 the section is
+        // lowercased where it is padded rather than by the whole-key pass downstream.
+        assertEquals("faidi", extractor.extract(withField("100", "[Faidit, Hugues],")));
     }
 }

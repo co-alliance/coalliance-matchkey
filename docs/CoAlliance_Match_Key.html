@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CoAlliance Match Key — v03-18-26</title>
+    <title>CoAlliance Match Key — v08-14-26</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 960px; margin: 20px auto; padding: 0 20px; line-height: 1.5; }
         h1 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 8px; }
@@ -22,11 +22,37 @@
 </head>
 <body>
 
-<h1>Colorado Alliance MARC Record Match Key — v07-31-26 (_v07312026)</h1>
-<p><em>July 31, 2026.</em></p>
+<h1>Colorado Alliance MARC Record Match Key — v08-14-26 (_v08142026)</h1>
+<p><em>August 14, 2026.</em></p>
 
 <div class="change-note">
-<strong>What's new in _v07312026:</strong>
+<strong>What's new in _v08142026:</strong>
+<ul>
+    <li><strong>A Turkish capital &Idot; no longer widens the key.</strong> The whole match key is
+        converted to lowercase, and "&Idot;" (U+0130) lowercases into <em>two</em> characters — "i"
+        plus a combining dot above. Each section used to be padded to its width <em>before</em> that
+        conversion, so an "&Idot;" counted as one character while padding and took up two afterwards,
+        pushing the key to 189, 190 or 191 characters. Sections are now converted to lowercase before
+        they are padded, so widths are measured on the final characters. "&Idot;" is the only character
+        in Unicode whose lowercase form is longer than the original, so nothing else is affected. This
+        reached the key through the <em>Publisher Name</em> section and affected 10,575 of 39.4 million
+        records, all Turkish or Ottoman.</li>
+    <li><strong>The publication year of a government document is validated before it is used.</strong>
+        When an 086 $a was present, the year was taken from control field 008 characters 7&ndash;10
+        without any of the checks applied elsewhere. A malformed value there produced a 2- or
+        3-character year and shortened the whole key, and the placeholder "9999" (unknown year) was
+        used as though it were a real year even when characters 11&ndash;14 held a valid one. That
+        second case produced a normal-length key that quietly could not match — the same record
+        without an 086 got the right year. Government documents still prefer characters 7&ndash;10,
+        but only when that value is a real year.</li>
+    <li>Both were reported by Ed Summers (Stanford University Libraries / POD) from the same 39.4
+        million record corpus that produced the _v07312026 fixes.</li>
+    <li>A key ending in <code>_v07312026</code> is <strong>not</strong> comparable to one ending in
+        <code>_v08142026</code> for government documents or for records whose publisher contains
+        "&Idot;". All other records produce the same key under both versions. Records must be
+        reindexed to carry the new key.</li>
+</ul>
+<strong>Previous version changes (07-31-26):</strong>
 <ul>
     <li><strong>Every match key is now exactly 188 characters.</strong> Two sections could previously
         collapse to zero width instead of being padded, which produced short keys of 188, 183, 93 or 88
@@ -75,8 +101,9 @@ matching within the system.</p>
 
 <h3>Publication Year</h3>
 <p>First check control field 008: if character 6 equals 'r' retrieve reissue date from characters 7&ndash;10;
-if there is a government document (086$a exists) always use date from characters 7&ndash;10;
-otherwise use date from characters 11&ndash;14 (if valid and &ge; 1200 and &ne; 9999), falling back to 7&ndash;10.
+if there is a government document (086$a exists) use the date from characters 7&ndash;10 when it is a
+valid year (4 digits and &ge; 1200 and &ne; 9999), otherwise treat the record like any other;
+then use date from characters 11&ndash;14 (if valid and &ge; 1200 and &ne; 9999), falling back to 7&ndash;10.
 If no valid date found, check 264$c then 260$c. For 264$c and 260$c, get the rightmost
 4 digits giving precedence to years preceded by 'c'. If still no valid date found return "0000".
 NOTE: character count starts at 0.</p>
@@ -90,7 +117,7 @@ NOTE: character count starts at 0.</p>
 <h3>Publisher Name</h3>
 <p>First check 264 $b then 260 $b. Ampersands are removed, then diacritics and
 non-alphanumeric characters (other than spaces) are automatically removed via
-stripPuncuation(). Convert to lowercase, remove underscores, normalize accents,
+stripPuncuation(). Remove underscores, normalize accents, convert to lowercase,
 and pad with underscores to 5 characters.</p>
 
 <h3>Type of</h3>
@@ -112,7 +139,7 @@ and pad with underscores to 5 characters.</p>
 <p class="removed">086 $a &mdash; <strong>REMOVED from match key as of 02-03-26</strong> for HATHI compatibility.</p>
 
 <h3>Version String</h3>
-<p class="new">The version string (currently <code>_v07312026</code>) is appended
+<p class="new">The version string (currently <code>_v08142026</code>) is appended
 to the matchkey just before the format character. This identifies which algorithm version produced the key.</p>
 
 <h3>Electronic Indicator</h3>
@@ -125,7 +152,8 @@ and MARC filename; appending 'e' if resource is electronic otherwise appending '
 <div class="note">Each section is padded with underscores to create the desired character count.
 This applies with no exceptions: a section whose source field is absent, empty, or reduced to nothing
 by cleaning is still emitted at its full width as underscores, so every match key is exactly 188
-characters. (Through _v03182026 the Title and Publisher Name sections did not follow this rule — see
+characters. (Through _v03182026 the Title and Publisher Name sections did not follow this rule;
+through _v07312026 a Turkish "&Idot;" in the Publisher Name could still overrun its section — see
 "What's new" above.)
 If a field is multi-valued, take the first value unless specified.</div>
 
@@ -157,7 +185,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tr>
 <tr>
     <td>5</td><td>Publisher Name</td><td>264 $b, 260 $b</td>
-    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 ). If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores.</td>
+    <td>If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents. pad_with_underscores( 5 ), which lowercases before it measures. If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores.</td>
 </tr>
 <tr>
     <td>1</td><td>Type of</td><td>Leader</td>
@@ -173,7 +201,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tr>
 <tr>
     <td>5</td><td>Author</td><td>100 $a, 110 $a, 111 $a, 130 $a</td>
-    <td>Combine the contents of each field applying stripPuncuationAndRemoveAccents() to each. Remove underscores and spaces, convert to lowercase. pad_with_underscores( 5 ).</td>
+    <td>Combine the contents of each field applying stripPuncuationAndRemoveAccents() to each. Remove underscores and spaces. pad_with_underscores( 5 ), which lowercases before it measures.</td>
 </tr>
 <tr>
     <td>15</td><td>Title-Inclusive Dates</td><td>245 $f</td>
@@ -185,7 +213,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tr>
 <tr class="new">
     <td>10</td><td>Version String</td><td>&mdash;</td>
-    <td>The version string (currently <code>_v07312026</code>) is appended here, just before the format character.</td>
+    <td>The version string (currently <code>_v08142026</code>) is appended here, just before the format character.</td>
 </tr>
 <tr>
     <td>1</td><td>Format Character</td><td>245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856</td>
@@ -194,7 +222,7 @@ If a field is multi-valued, take the first value unless specified.</div>
 </tbody>
 </table>
 
-<p><strong>Post-processing:</strong> The entire match key is converted to lowercase, then any remaining spaces are replaced with underscores.</p>
+<p><strong>Post-processing:</strong> The entire match key is converted to lowercase (each padded section is already lowercase as of _v08142026, so this affects only the fixed-width sections), then any remaining spaces are replaced with underscores.</p>
 <p class="note">NOTE: earlier revisions of this document also described colons being replaced with 'x'. That replacement was written into the indexer on 05-16-18 but has never taken effect (the statement that applied it was immediately overwritten by the space replacement), so no released match key has ever had it. Colons are already removed at the section level by stripPuncuation(). The claim is dropped here rather than implemented, to keep this document a description of what the algorithm actually does.</p>
 
 
@@ -238,7 +266,10 @@ EXAMPLE:
 
 <h3>padWithUnderscores( String input, Integer count )</h3>
 <p>Replace repeating spaces with single space. Replace all spaces with underscores.
-Trim to <em>count</em> characters. If shorter, pad the end with underscores.</p>
+Convert to lowercase &mdash; done here, before the length is measured, so that a character whose
+lowercase form is longer than itself (Turkish "&Idot;", U+0130, the only one in Unicode) cannot
+overrun the section width. Trim to <em>count</em> characters. If shorter, pad the end with
+underscores.</p>
 
 <h3>stripPuncuationAndRemoveAccents( String input )</h3>
 <pre>tempString = stripPuncuation( input )
@@ -280,7 +311,7 @@ otherwise  return 'p'
 
 <div class="example">
 <p><strong>Generated matchkey:</strong></p>
-<pre>americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v07312026e</pre>
+<pre>americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v08142026e</pre>
 
 <p><strong>Key breakdown:</strong></p>
 <table>
@@ -296,7 +327,7 @@ otherwise  return 'p'
 <tr><td>Title Number</td><td>10</td><td><code>__________</code></td></tr>
 <tr><td>Author</td><td>5</td><td><code>ameri</code></td></tr>
 <tr><td>Title Dates</td><td>15</td><td><code>_______________</code></td></tr>
-<tr class="new"><td>Version</td><td>10</td><td><code>_v07312026</code></td></tr>
+<tr class="new"><td>Version</td><td>10</td><td><code>_v08142026</code></td></tr>
 <tr><td>Format</td><td>1</td><td><code>e</code></td></tr>
 </table>
 
@@ -314,7 +345,7 @@ otherwise  return 'p'
 </div>
 
 <hr>
-<p><em>Colorado Alliance of Research Libraries &mdash; Gold Rush Match Key Documentation v07-31-26 (_v07312026)</em></p>
+<p><em>Colorado Alliance of Research Libraries &mdash; Gold Rush Match Key Documentation v08-14-26 (_v08142026)</em></p>
 
 </body>
 </html>

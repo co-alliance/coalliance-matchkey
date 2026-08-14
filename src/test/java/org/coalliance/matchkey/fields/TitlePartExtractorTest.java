@@ -55,7 +55,7 @@ class TitlePartExtractorTest {
         // "Part one." -> "Part_one_" (9 chars) -> take first 8 ("Part_one")
         // "Part two." -> "Part_two_" (9 chars) -> take first 8 ("Part_two")
         // concat = "Part_onePart_two" (16); pad to 30
-        assertEquals("Part_onePart_two______________",
+        assertEquals("part_onepart_two______________",
                 extractor.extract(withTitleParts("Part one.", "Part two.")));
     }
 
@@ -64,7 +64,7 @@ class TitlePartExtractorTest {
     void threeLongParts() {
         // From CoAllianceIndexUtil javadoc on field245p; spaces become underscores
         // because stripPuncuation runs with UNDERSCORE replacement.
-        assertEquals("ManufactuIndustry_Frozen_fr___",
+        assertEquals("manufactuindustry_frozen_fr___",
                 extractor.extract(withTitleParts(
                         "Manufacturing.",
                         "Industry series.",

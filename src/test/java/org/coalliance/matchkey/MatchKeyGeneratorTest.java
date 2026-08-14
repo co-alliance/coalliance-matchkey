@@ -43,6 +43,44 @@ class MatchKeyGeneratorTest {
     }
 
     @Test
+    @DisplayName("Turkish İ in the publisher keeps the key at 188 (_v08142026)")
+    void matchkeyWidthTurkishPublisher() {
+        // 08-14-26 İ (U+0130) lowercases to two code points, so measuring the
+        // 5-char publisher section before the key-wide lowercase let it overrun.
+        // Ed Summers (Stanford/POD) found 10,575 such records in 39.4M: 189 for
+        // one İ, 190 for two, 191 for three. İ is the only character in Unicode
+        // whose lowercase mapping lengthens the string.
+        assertEquals(188, generator.generate(withPublisher("İstanbul Press")).length());
+        assertEquals(188, generator.generate(withPublisher("İİstanbul")).length());
+        assertEquals(188, generator.generate(withPublisher("İİİstanbul")).length());
+        // The ASCII spelling was never affected; it stays the control.
+        assertEquals(188, generator.generate(withPublisher("Istanbul Press")).length());
+    }
+
+    @Test
+    @DisplayName("İ still distinguishes two publishers, it just no longer widens the key")
+    void turkishPublisherStillDistinct() {
+        // The fix is about width, not matching: an İ publisher and its ASCII
+        // spelling did not match before and still do not. What matters is that
+        // two copies of the same İ record produce the same 188-char key.
+        String turkish = generator.generate(withPublisher("İstanbul Press"));
+        String ascii   = generator.generate(withPublisher("Istanbul Press"));
+        assertEquals(turkish, generator.generate(withPublisher("İstanbul Press")));
+        assertTrue(!turkish.equals(ascii), "İ and I publishers should still differ");
+    }
+
+    private Record withPublisher(String publisher) {
+        Record r = marcFactory.newRecord("02801nam a22005052u 4500");
+        DataField f245 = marcFactory.newDataField("245", '1', '0');
+        f245.addSubfield(marcFactory.newSubfield('a', "Some Title"));
+        r.addVariableField(f245);
+        DataField f264 = marcFactory.newDataField("264", ' ', '1');
+        f264.addSubfield(marcFactory.newSubfield('b', publisher));
+        r.addVariableField(f264);
+        return r;
+    }
+
+    @Test
     @DisplayName("title-less, publisher-less record is still 188 characters (_v07312026)")
     void matchkeyWidthBareRecord() {
         // 07-31-26 A record with no 245 and no 264/260 (e.g. a MARC holdings record,

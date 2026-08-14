@@ -17,6 +17,8 @@ import org.coalliance.matchkey.fields.TitleNumberExtractor;
 import org.coalliance.matchkey.fields.TitlePartExtractor;
 import org.marc4j.marc.Record;
 
+import java.util.Locale;
+
 /**
  * Generates a Gold Rush matchKey from a MARC bibliographic record.
  *
@@ -98,6 +100,12 @@ public final class MatchKeyGenerator {
         mk.append(MatchKeyVersion.VERSION);
         mk.append(formatChar.extract(record));
 
-        return mk.toString().toLowerCase().replace(' ', '_');
+        // 08-14-26 Locale.ROOT: on a Turkish-locale JVM the default-locale
+        // overload lowercases "I" to dotless "ı", which would silently produce a
+        // different key on a different machine. Every variable-width section is
+        // already lowercased at its fixed width by Padding.padWithUnderscores,
+        // so this pass only catches the fixed-width sections; it can no longer
+        // change any section's width. See MatchKeyVersion._v08142026.
+        return mk.toString().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 }

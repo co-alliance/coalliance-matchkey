@@ -62,7 +62,7 @@ public final class TitleExtractor {
 
         String fallback = nonRomanFallback(record);
         if (fallback != null) {
-            return padWithUnderscores(fallback.trim(), OUTPUT_WIDTH).toLowerCase();
+            return padWithUnderscores(fallback.trim(), OUTPUT_WIDTH);
         }
 
         titleField = resolveLinkedTitleField(record, titleField);
@@ -74,7 +74,9 @@ public final class TitleExtractor {
         if (!Normalizer.isNormalized(combined, Normalizer.Form.NFD)) {
             combined = normalize(combined);
         }
-        return padWithUnderscores(combined, OUTPUT_WIDTH).toLowerCase();
+        // 08-14-26 padWithUnderscores lowercases before measuring; the
+        // trailing toLowerCase() it used to carry is redundant.
+        return padWithUnderscores(combined, OUTPUT_WIDTH);
     }
 
     /**

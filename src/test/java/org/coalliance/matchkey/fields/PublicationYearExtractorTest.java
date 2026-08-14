@@ -61,6 +61,64 @@ class PublicationYearExtractorTest {
         assertEquals("2014", extractor.extract(r));
     }
 
+    // 08-14-26 (_v08142026) The gov-doc short-circuit is conditional on date1
+    // being usable. Reported by Ed Summers (Stanford/POD): the raw return skipped
+    // the checks both sibling paths apply, so a gov doc could key on a 9999
+    // placeholder or on a 2- or 3-character year. The four tests below pin both
+    // halves of the fix — that a usable date1 still wins, and that an unusable
+    // one now falls through instead of being emitted.
+
+    @Test
+    @DisplayName("gov doc with date1 == 9999 falls through to date2 (was: emitted 9999)")
+    void govDocNineNineFallsThroughToDate2() {
+        // The bug's signature case: identical records, one with an 086, used to
+        // disagree. 9999 is the unknown-year placeholder both sibling paths reject.
+        Record withGovDoc = withControlField("008", "150101m99992016xxu           eng d");
+        addSubfield(withGovDoc, "086", 'a', "ED 1.310/2:516193");
+        assertEquals("2016", extractor.extract(withGovDoc));
+
+        Record withoutGovDoc = withControlField("008", "150101m99992016xxu           eng d");
+        assertEquals(extractor.extract(withoutGovDoc), extractor.extract(withGovDoc));
+    }
+
+    @Test
+    @DisplayName("gov doc with a 3-character date1 falls through instead of shortening the key")
+    void govDocShortDate1FallsThrough() {
+        Record r = withControlField("008", "150101m987 2016xxu           eng d");
+        addSubfield(r, "086", 'a', "ED 1.310/2:516193");
+        assertEquals("2016", extractor.extract(r));
+    }
+
+    @Test
+    @DisplayName("gov doc with date1 below MIN_YEAR (1200) falls through to date2")
+    void govDocBelowMinYearFallsThrough() {
+        Record r = withControlField("008", "150101m05002016xxu           eng d");
+        addSubfield(r, "086", 'a', "ED 1.310/2:516193");
+        assertEquals("2016", extractor.extract(r));
+    }
+
+    @Test
+    @DisplayName("gov doc with no usable 008 date at all still reaches 264$c")
+    void govDocUnusable008ReachesField264c() {
+        Record r = withControlField("008", "150101m987 9999xxu           eng d");
+        addSubfield(r, "086", 'a', "ED 1.310/2:516193");
+        addSubfield(r, "264", 'c', "[1988]");
+        assertEquals("1988", extractor.extract(r));
+    }
+
+    @Test
+    @DisplayName("every path returns exactly 4 characters")
+    void alwaysFourCharacters() {
+        Record govDocShort = withControlField("008", "150101m987 987 xxu           eng d");
+        addSubfield(govDocShort, "086", 'a', "ED 1.310/2:516193");
+        assertEquals(4, extractor.extract(govDocShort).length());
+        assertEquals("0000", extractor.extract(govDocShort));
+
+        assertEquals(4, extractor.extract(withControlField("008", "tooshort")).length());
+        assertEquals(4, extractor.extract(
+                withControlField("008", "150101m20142016xxu           eng d")).length());
+    }
+
     @Test
     @DisplayName("date2 == 9999 falls through to date1")
     void date2NineNine() {

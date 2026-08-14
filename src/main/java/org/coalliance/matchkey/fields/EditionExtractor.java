@@ -8,6 +8,7 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Leader;
 import org.marc4j.marc.Record;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,7 +49,7 @@ public final class EditionExtractor {
     private static final Pattern ONE_ALPHA    = Pattern.compile("[a-zA-Z]");
 
     public String extract(Record record) {
-        String raw = field250a(record).toLowerCase();
+        String raw = field250a(record).toLowerCase(Locale.ROOT);
 
         // Word-form ordinals. Each branch matches the indexer's contains() check
         // against the 3-char raw code (the first 3 letters of the edition statement).

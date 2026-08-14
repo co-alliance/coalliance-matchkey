@@ -25,7 +25,7 @@ import static org.coalliance.matchkey.util.PuncuationStripper.stripPuncuation;
  *   <li>Delete all resulting underscores so the remaining characters are run
  *       together with no separators (yields e.g. {@code "DistributedbyERIC..."}
  *       for {@code "Distributed by ERIC Clearinghouse"}).</li>
- *   <li>Pad or truncate to 5 characters and lowercase.</li>
+ *   <li>Lowercase, then pad or truncate to 5 characters.</li>
  * </ol>
  *
  * <p>Note: the indexer's source intends an NFD accent normalisation here (added
@@ -80,6 +80,10 @@ public final class PublisherExtractor {
         }
         String work = input.replace("&", "");
         work = stripPuncuation(work.trim()).replace("_", "");
-        return padWithUnderscores(work, OUTPUT_WIDTH).toLowerCase();
+        // 08-14-26 The trailing toLowerCase() is gone: padWithUnderscores now
+        // lowercases before it measures, so the width is that of the final
+        // characters. See MatchKeyVersion._v08142026 — this section is where
+        // Turkish İ used to push the key past 188.
+        return padWithUnderscores(work, OUTPUT_WIDTH);
     }
 }

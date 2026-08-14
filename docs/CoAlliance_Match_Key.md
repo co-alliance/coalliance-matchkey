@@ -1,8 +1,45 @@
 
 Colorado Alliance MARC record match key generation.
-July-31-2026 (_v07312026)
+August-14-2026 (_v08142026)
 
-What's new in _v07312026:
+What's new in _v08142026:
+	Two remaining ways a key could be off-spec are closed. Both were
+	reported by Ed Summers (Stanford University Libraries / POD) from the
+	same 39.4 million record corpus that produced the _v07312026 fixes.
+
+		- Turkish capital I with dot above ("İ", U+0130) no longer widens
+		  the key. The whole key is converted to lowercase, and this one
+		  character lowercases into TWO characters — "i" plus a combining
+		  dot above. Because each section used to be padded to its width
+		  BEFORE that conversion, an "İ" counted as one character while
+		  padding and took up two afterwards, pushing the key to 189, 190
+		  or 191 characters. Sections are now converted to lowercase
+		  before they are padded, so widths are measured on the final
+		  characters. "İ" is the only character in Unicode whose lowercase
+		  form is longer than the original, so no other character is
+		  affected. This reached the key through the Publisher Name
+		  section and affected 10,575 of 39.4 million records, all Turkish
+		  or Ottoman.
+
+		- The publication year of a government document is now validated
+		  before it is used. When an 086 $a was present the year was taken
+		  from control field 008 characters 7-10 without any of the checks
+		  applied elsewhere. A malformed value there produced a 2- or
+		  3-character year and shortened the whole key, and the placeholder
+		  "9999" (meaning "unknown year") was used as if it were a real
+		  year even when characters 11-14 held a valid one. That second
+		  case produced a normal-length key that quietly could not match:
+		  the same record without an 086 got the right year. Government
+		  documents still prefer characters 7-10, but only when that value
+		  is a real year; otherwise they now follow the same path as every
+		  other record.
+
+	NOTE: a key ending in "_v07312026" is NOT comparable to one ending in
+	"_v08142026" for government documents or for records whose publisher
+	contains "İ". All other records produce the same key under both
+	versions. Records must be reindexed to carry the new key.
+
+Previous version changes (07-31-26):
 	Every match key is now exactly 188 characters.
 
 	Two sections could previously collapse to zero width instead of being
@@ -43,8 +80,9 @@ General Media Description
 
 Publication Year
 	First check control field 008: if character 6 equals 'r' retrieve reissue date from characters 7-10;
-	if there is a government document (086$a exists) always use date from characters 7-10;
-	otherwise use date from characters 11-14 (if valid and >= 1200 and != 9999), falling back to 7-10.
+	if there is a government document (086$a exists) use the date from characters 7-10 when it is a
+	valid year (4 digits and >= 1200 and != 9999), otherwise treat the record like any other;
+	then use date from characters 11-14 (if valid and >= 1200 and != 9999), falling back to 7-10.
 	If no valid date found, check 264$c then 260$c. For 264$c and 260$c, get the rightmost
 	4 digits giving precedence to years preceded by 'c'. If still no valid date found return "0000".
 	NOTE: character count starts at 0.
@@ -58,7 +96,7 @@ Edition Statement
 Publisher Name
 	First check 264 $b then 260 $b. Ampersands are removed, then diacritics and
 	non-alphanumeric characters (other than spaces) are automatically removed via
-	stripPuncuation(). Convert to lowercase, remove underscores, normalize accents,
+	stripPuncuation(). Remove underscores, normalize accents, convert to lowercase,
 	and pad with underscores to 5 characters.
 
 Type of
@@ -80,7 +118,7 @@ Government Document Number
 	086 $a — **REMOVED from match key as of 02-03-26** for HATHI compatibility.
 
 Version String
-	The version string (currently "_v07312026") is appended to the
+	The version string (currently "_v08142026") is appended to the
 	matchkey just before the format character. This identifies which
 	algorithm version produced the key.
 
@@ -96,7 +134,8 @@ NOTE: Each section is padded with underscores to create the desired character co
 This applies with no exceptions. A section whose source field is absent, empty, or
 reduced to nothing by cleaning is still emitted at its full width as underscores, so
 every match key is exactly 188 characters. (Through _v03182026 the Title and
-Publisher Name sections did not follow this rule — see "What's new" above.)
+Publisher Name sections did not follow this rule; through _v07312026 a Turkish "İ"
+in the Publisher Name could still overrun its section — see "What's new" above.)
 
 If a field is multi-valued, take the first value unless specified.
 Functions (in bold) are described in appendix.
@@ -108,18 +147,19 @@ Functions (in bold) are described in appendix.
 | 4 | Publication Year | 008, 264 $c, 260 $c | First check 008 field (see above for reissue/gov doc logic). If no valid number, check 264$c then 260$c. Get rightmost 4 digits, giving precedence to years preceded by 'c'. If not found return "0000". pad_with_underscores( 4 ) |
 | 4 | Pagination | 300 $a | First four contiguous numeric characters are used. If there are fewer than four contiguous numeric characters, or if there is no source field, these bytes are assigned underscores. pad_with_underscores( 4 ) |
 | 3 | Edition Statement | 250 $a | First three, first two or first contiguous numeric characters is used. If there are no numeric characters, then the first three, first two or first contiguous alphabetic characters is used. Diacritics are automatically removed from this element. Convert 'fir' to 1, 'sec' to 2, 'thi' to 3, 'for' to 4, 'fif' to 5, 'six' to 6, 'sev' to 7, 'eig' to 8, 'nin' to 9, '10t' to 10. If edition is empty and format is "Book", defaults to "1__" (1st edition). pad_with_underscores( 3 ) |
-| 5 | Publisher Name | 264 $b, 260 $b | If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents, convert to lowercase. pad_with_underscores( 5 ). If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores. |
+| 5 | Publisher Name | 264 $b, 260 $b | If 264 is empty check 260$b. Remove ampersands, apply stripPuncuation(), remove underscores, normalize accents. pad_with_underscores( 5 ), which lowercases before it measures. If neither 264$b nor 260$b is present, or the value cleans to nothing, the section is 5 underscores. |
 | 1 | Type of | Leader | character #6. If leader contains 10 or more characters return the 6th character of the leader; otherwise the section is a single underscore. |
 | 30 | Title Part | 245 $p | If multiple $p subfields, take the first 10 characters of each. trim(), stripPuncuation(), pad_with_underscores( 30 ). **NOTE:** The first $p has already been added to the Title section. |
 | 10 | Title Number | 245 $n | stripPuncuation(), pad_with_underscores( 10 ) |
-| 5 | Author | 100 $a, 110 $a, 111 $a, 130 $a | Combine the contents of each field applying stripPuncuationAndRemoveAccents() to each. Remove underscores and spaces, convert to lowercase. pad_with_underscores( 5 ). |
+| 5 | Author | 100 $a, 110 $a, 111 $a, 130 $a | Combine the contents of each field applying stripPuncuationAndRemoveAccents() to each. Remove underscores and spaces. pad_with_underscores( 5 ), which lowercases before it measures. |
 | 15 | Title-Inclusive Dates | 245 $f | Remove all spaces then stripPuncuation(), padWithUnderscores( 15 ) |
 | — | Government Document Number | 086 $a | **REMOVED from match key (02-03-26)** for HATHI compatibility. Previously: stripPuncuationAndRemoveAccents(), trimMAXfieldLength(). |
-| 10 | Version String | — | The version string (currently "_v07312026") is appended here, just before the format character. |
+| 10 | Version String | — | The version string (currently "_v08142026") is appended here, just before the format character. |
 | 1 | Format Character | 245 $h, 590 $a, 533 $a, 300 $a, 007, 337 $a, 086+856 | getFormatCharacter() — append 'e' for electronic, otherwise 'p'. |
 
 
-Post-processing: The entire match key is converted to lowercase, then any remaining
+Post-processing: The entire match key is converted to lowercase (each padded section is
+already lowercase as of _v08142026, so this affects only the fixed-width sections), then any remaining
 spaces are replaced with underscores.
 
 NOTE: earlier revisions of this document also described colons being replaced with
@@ -227,6 +267,10 @@ String padWithUnderscores( String input, Integer count ){
 
 	replace all spaces in 'input' with underscores
 
+	convert 'input' to lowercase — done here, before the length is measured, so that
+	a character whose lowercase form is longer than itself (Turkish "İ", U+0130, the
+	only one in Unicode) cannot overrun the section width. See _v08142026.
+
 	Trim 'input' to length to 'count' characters.
 
 	If needed, pad the end of the string with underscores to create the desired character String.
@@ -322,7 +366,7 @@ String getFormatCharacter( Record ){ //Note: this format character is appended t
 
 Match Key Example
 
-americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v07312026e
+americancounciloflearnedsocietiesannualreportfortheyears20062007and20052006_____________________2008________distra________________________________________ameri____________________________v08142026e
 
 000 	02801nam a22005052u 4500
 001	991034738289702766
@@ -379,5 +423,5 @@ Key breakdown:
 - Title Number (10): "__________"
 - Author (5): "ameri"
 - Title Dates (15): "_______________"
-- Version (10): "_v07312026"
+- Version (10): "_v08142026"
 - Format (1): "e"

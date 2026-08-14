@@ -9,6 +9,7 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Extracts the 1-character format component of the matchKey: {@code "e"} for an
@@ -87,7 +88,7 @@ public final class FormatCharExtractor {
         for (ControlField cf : (List<ControlField>) record.getControlFields()) {
             if ("007".equals(cf.getTag())
                     && cf.getData() != null
-                    && cf.getData().toUpperCase().startsWith("C")) {
+                    && cf.getData().toUpperCase(Locale.ROOT).startsWith("C")) {
                 return true;
             }
         }
@@ -99,7 +100,7 @@ public final class FormatCharExtractor {
         // mis-tagged 'p'.
         String leader = record.getLeader() == null ? null : record.getLeader().toString();
         if (leader != null && leader.length() >= 10
-                && leader.substring(6, 8).toUpperCase().startsWith("M")) {
+                && leader.substring(6, 8).toUpperCase(Locale.ROOT).startsWith("M")) {
             return true;
         }
         return false;
@@ -109,7 +110,7 @@ public final class FormatCharExtractor {
         DataField f337 = (DataField) record.getVariableField("337");
         if (f337 == null || f337.getSubfield('a') == null) return false;
         String a = f337.getSubfield('a').getData();
-        return a != null && a.trim().toLowerCase().startsWith("c");
+        return a != null && a.trim().toLowerCase(Locale.ROOT).startsWith("c");
     }
 
     private boolean isElectronicGovDoc(Record record) {
@@ -119,13 +120,13 @@ public final class FormatCharExtractor {
 
     private boolean filenameSuggestsElectronic() {
         if (marcFilenameHint == null) return false;
-        String lower = marcFilenameHint.toLowerCase();
+        String lower = marcFilenameHint.toLowerCase(Locale.ROOT);
         return lower.contains("electronic") || lower.contains("ebook");
     }
 
     private boolean filenameSuggestsPrint() {
         if (marcFilenameHint == null) return false;
-        String lower = marcFilenameHint.toLowerCase();
+        String lower = marcFilenameHint.toLowerCase(Locale.ROOT);
         return lower.contains("physical") || lower.contains("print");
     }
 
@@ -133,6 +134,6 @@ public final class FormatCharExtractor {
         DataField field = (DataField) record.getVariableField(tag);
         if (field == null || field.getSubfield(code) == null) return false;
         String value = field.getSubfield(code).getData();
-        return value != null && value.toLowerCase().contains(needle);
+        return value != null && value.toLowerCase(Locale.ROOT).contains(needle);
     }
 }

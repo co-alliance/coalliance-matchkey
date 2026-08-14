@@ -7,15 +7,15 @@ whenever a release is cut.
 
 ## Files
 
-- **`coa_matchkey_v07312026.jar`** — thin jar (no marc4j bundled).
-  Requires marc4j 2.9.6 on the classpath. The `v07312026` suffix matches the
+- **`coa_matchkey_v08142026.jar`** — thin jar (no marc4j bundled).
+  Requires marc4j 2.9.6 on the classpath. The `v08142026` suffix matches the
   algorithm version embedded inside every generated matchkey, so the filename
   tells you which algorithm version this jar produces.
 
 ## CLI usage
 
 ```bash
-java -cp coa_matchkey_v07312026.jar:marc4j-2.9.6.jar \
+java -cp coa_matchkey_v08142026.jar:marc4j-2.9.6.jar \
      org.coalliance.matchkey.cli.MatchKeyCli file.marc
 ```
 

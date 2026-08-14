@@ -41,7 +41,7 @@
             matchkey. When bumping the matchkey algorithm, change both this and
             MatchKeyVersion.VERSION in the same commit.
         -->
-        <matchkey.algorithmVersion>v07312026</matchkey.algorithmVersion>
+        <matchkey.algorithmVersion>v08142026</matchkey.algorithmVersion>
     </properties>
 
     <dependencies>
