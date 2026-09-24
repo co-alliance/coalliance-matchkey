@@ -9,12 +9,13 @@ can generate matchKeys that interoperate with the Gold Rush system, or port the
 algorithm to other languages. The canonical algorithm specification lives in
 [`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md). The same
 specification is published in three formats: Markdown
-([`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md), rendered by
-GitHub in the browser), HTML
-([`docs/CoAlliance_Match_Key.html`](docs/CoAlliance_Match_Key.html)) and Word
+([`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md), the canonical
+copy, rendered by GitHub in the browser), HTML
+([read it rendered](https://co-alliance.github.io/coalliance-matchkey/CoAlliance_Match_Key.html))
+and Word
 ([download `CoAlliance_Match_Key.docx`](https://github.com/co-alliance/coalliance-matchkey/raw/main/docs/CoAlliance_Match_Key.docx)).
-GitHub renders the Markdown copy in the browser; the HTML and Word copies are for
-downloading and reading locally.
+
+**Read the specification online: https://co-alliance.github.io/coalliance-matchkey/**
 
 ## What is a matchKey?
 
