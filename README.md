@@ -7,7 +7,12 @@ bibliographic records across heterogeneous library catalogs.
 This repository exists so that other libraries — inside the consortium and out —
 can generate matchKeys that interoperate with the Gold Rush system, or port the
 algorithm to other languages. The canonical algorithm specification lives in
-[`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md).
+[`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md). The same
+specification is published in three formats: Markdown
+([`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md), rendered by
+GitHub in the browser), HTML
+([`docs/CoAlliance_Match_Key.html`](docs/CoAlliance_Match_Key.html)) and Word
+([`docs/CoAlliance_Match_Key.docx`](docs/CoAlliance_Match_Key.docx)).
 
 ## What is a matchKey?
 
