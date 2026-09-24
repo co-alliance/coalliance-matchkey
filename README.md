@@ -26,7 +26,7 @@ the same work.
 
 ## Algorithm version
 
-The current algorithm version is **`_v07312026`**. The version string is
+The current algorithm version is **`_v08142026`**. The version string is
 embedded in every generated matchKey just before the format character, so
 consumers can tell at a glance which algorithm produced a given key.
 
@@ -34,7 +34,16 @@ Every matchKey is exactly **188 characters**. Through `_v03182026` an absent
 title (no 245) or an absent publisher (no 264$b/260$b) emitted a zero-width
 section instead of padding, so keys could be 188, 183, 93 or 88 characters.
 Both cases now pad to full width. Keys carrying `_v03182026` are **not**
-comparable to `_v07312026` keys for records lacking a 245 or a publisher. See
+comparable to `_v07312026` or later keys for records lacking a 245 or a
+publisher.
+
+`_v08142026` closed two narrower gaps, both reported from a 39.4 million record
+corpus: a Turkish capital `İ` (U+0130) could push a key past 188 characters,
+because it lowercases into two code points after the section had been padded;
+and a government-document publication year taken from 008 date1 was emitted
+without validation, so a malformed date or a `9999` placeholder produced a
+normal-looking but unmatchable key. `_v07312026` keys remain comparable to
+`_v08142026` keys for every record outside those two populations. See
 [`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md) for the field-by-field
 specification and an annotated example.
 
@@ -50,7 +59,7 @@ source is authoritative for *behaviour*.
 ## Relationship to the production indexer
 
 The CoAlliance MarcImporter (not public) consumes this library directly — it
-ships `coa_matchkey_v07312026.jar` and calls `MatchKeyGenerator`. This repository
+ships `coa_matchkey_v08142026.jar` and calls `MatchKeyGenerator`. This repository
 is therefore the canonical implementation, not a copy. When the algorithm changes
 — which happens rarely and is signalled by a version-string bump — this repo is
 updated and MarcImporter picks up the new jar.
