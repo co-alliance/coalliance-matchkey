@@ -14,10 +14,8 @@
         pre { background-color: #f5f5f5; padding: 12px; overflow-x: auto; font-size: 13px; border: 1px solid #ddd; }
         .disabled { color: #999; }
         .removed { color: #999; text-decoration: line-through; }
-        .new { background-color: #eeffee; }
         .note { background-color: #ffffdd; padding: 8px 12px; border-left: 3px solid #cc9; margin: 10px 0; }
         .example { background-color: #f0f8ff; padding: 12px; border: 1px solid #cce; margin: 15px 0; }
-        .change-note { background-color: #eeffee; padding: 8px 12px; border-left: 3px solid #6b6; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -25,7 +23,6 @@
 <h1>Colorado Alliance MARC Record Match Key — v08-14-26 (_v08142026)</h1>
 <p><em>August 14, 2026.</em></p>
 
-<div class="change-note">
 <strong>What's new in _v08142026:</strong>
 <ul>
     <li><strong>A Turkish capital &Idot; no longer widens the key.</strong> The whole match key is
@@ -80,8 +77,6 @@
     <li>Title field expanded from 70 to 95 characters.</li>
     <li>Government Document Number (086 $a) removed for HATHI compatibility.</li>
 </ul>
-</div>
-
 <p>The Gold Rush system allows libraries to do in-depth analytics for their cataloged library holdings
 for either themselves or in comparison to other libraries that are already in the system. It supports
 a wide variety of use cases including shared print, weeding, collection building, space planning,
@@ -142,7 +137,7 @@ normalized publisher.</p>
 <p class="removed">086 $a &mdash; <strong>REMOVED from match key as of 02-03-26</strong> for HATHI compatibility.</p>
 
 <h3>Version String</h3>
-<p class="new">The version string (currently <code>_v08142026</code>) is appended
+<p>The version string (currently <code>_v08142026</code>) is appended
 to the matchkey just before the format character. This identifies which algorithm version produced the key.</p>
 
 <h3>Electronic Indicator</h3>
@@ -214,7 +209,7 @@ If a field is multi-valued, take the first value unless specified.</div>
     <td>&mdash;</td><td>Government Document Number</td><td>086 $a</td>
     <td><strong>REMOVED from match key (02-03-26)</strong> for HATHI compatibility.</td>
 </tr>
-<tr class="new">
+<tr>
     <td>10</td><td>Version String</td><td>&mdash;</td>
     <td>The version string (currently <code>_v08142026</code>) is appended here, just before the format character.</td>
 </tr>
@@ -330,7 +325,7 @@ otherwise  return 'p'
 <tr><td>Title Number</td><td>10</td><td><code>__________</code></td></tr>
 <tr><td>Author</td><td>5</td><td><code>ameri</code></td></tr>
 <tr><td>Title Dates</td><td>15</td><td><code>_______________</code></td></tr>
-<tr class="new"><td>Version</td><td>10</td><td><code>_v08142026</code></td></tr>
+<tr><td>Version</td><td>10</td><td><code>_v08142026</code></td></tr>
 <tr><td>Format</td><td>1</td><td><code>e</code></td></tr>
 </table>
 
