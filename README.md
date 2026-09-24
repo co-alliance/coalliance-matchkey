@@ -12,7 +12,9 @@ specification is published in three formats: Markdown
 ([`docs/CoAlliance_Match_Key.md`](docs/CoAlliance_Match_Key.md), rendered by
 GitHub in the browser), HTML
 ([`docs/CoAlliance_Match_Key.html`](docs/CoAlliance_Match_Key.html)) and Word
-([`docs/CoAlliance_Match_Key.docx`](docs/CoAlliance_Match_Key.docx)).
+([download `CoAlliance_Match_Key.docx`](https://github.com/co-alliance/coalliance-matchkey/raw/main/docs/CoAlliance_Match_Key.docx)).
+GitHub renders the Markdown copy in the browser; the HTML and Word copies are for
+downloading and reading locally.
 
 ## What is a matchKey?
 
